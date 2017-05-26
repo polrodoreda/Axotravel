@@ -8,7 +8,14 @@ import travelapp.src.distance as d
 
 
 def home(request):
-    return render(request, 'travelapp/home.html', {})
+    # geoip
+    city = 'Barcelona'
+    owm = w.api_connection()
+    obs = owm.weather_at_place(city)
+    we = obs.get_weather()
+    temperature = we.get_temperature(unit='celsius')['temp']
+    status = we.get_status()
+    return render(request, 'travelapp/home.html', {'city': city, 'temperature': temperature, 'status': status})
 
 
 def travel_form(request):
@@ -35,7 +42,10 @@ def travel_info(request):
             data = zip(result, dates, weather)
 
         else:
-            pass
+            dates = g.get_dates(depart_date, clear_cities)
+            combinations = g.get_combinations(clear_cities)
+            result = d.distance_trip(combinations)
+            data = zip(result, dates)
 
     else:
         data = 'Error'

@@ -3,10 +3,10 @@
 import psycopg2
 
 
-def get_dist(city_id, city2_id):
-    conn = psycopg2.connect("dbname=geodjango user=postgres password=Pepe1234")
+def get_dist(city, city2):
+    conn = psycopg2.connect("dbname=travelapp_airport user=postgres password=Pepe1234")
     cur = conn.cursor()
-    cur.execute("SELECT st_distance_sphere(a.location, b.location) FROM cities_city a, cities_city b WHERE a.id=%s AND b.id=%s;", (city_id, city2_id))
+    cur.execute("SELECT st_distance_sphere(a.location, b.location) FROM travelapp_airport a, travelapp_airport b WHERE a.name=%s AND b.name=%s;", (city, city2))
     res = cur.fetchone()[0]
 
     return res/1000

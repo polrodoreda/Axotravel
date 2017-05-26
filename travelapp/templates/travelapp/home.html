@@ -1,10 +1,17 @@
 {% extends 'travelapp/base.html' %}
 {% load staticfiles %}
+{% block navbar %}
+  <ul class="nav navbar-nav navbar-right">
+      <li><a href="#">{{ city }}, {{ temperature }} ºC, {{ status }}</a></li>
+  </ul>
+{% endblock %}
+
 {% block content %}
   <div class="jumbotron">
     <h2>Find your best travel around Europe</h2>
     <h3>You choose the cities, we give you the best route</h3>
   </div>
+
   <div class="row">
     <div id="myCarousel" class="carousel slide" data-ride="carousel">
       <ol class="carousel-indicators">
