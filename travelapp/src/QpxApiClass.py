@@ -16,7 +16,7 @@ class QpxApi:
     def __init__(self):
         pass
 
-    def CreateQueries(self, flightDbQuery):
+    def CreateQuery(self, flightDbQuery):
         params ={
           "request": {
             "slice": [
@@ -32,36 +32,30 @@ class QpxApi:
             "refundable": False
           }
         }
-        queries = []
 
         query = copy.deepcopy(params)
-
-        print("origin: " + flightDbQuery['origin'] + " destination: " + flightDbQuery['destination'] +" date: " + flightDbQuery['date'])
         query["request"]["slice"].append({
         "origin": flightDbQuery['origin'],
         "destination": flightDbQuery['destination'],
-        "date": flightDbQuery['date']
+        "date": flightDbQuery['departure_date']
         })
-        queries.append(query)
-        query = copy.deepcopy(params)
 
-        #prinT(queries)
-        return queries
+        return query
 
     def Query(self, queries):
         results = []
         for index, query in enumerate(queries):
             #data = None
-            prinT(json.dumps(query[0]))
+            prinT(json.dumps(query))
             print("")
             print("")
             #######################################################################################
             # Cuidado que me cobran!!!!!!!!!!!!
-            #response = requests.post(self.url, data=json.dumps(query[0]), headers=self.headers)
-            #data = response.json()
-            #results.append(data)
+            response = requests.post(self.url, data=json.dumps(query), headers=self.headers)
+            data = response.json()
+            results.append(data)
             #######################################################################################
-            results.append(None)
+            #results.append(None)
         return results
 
     def MinPrice(self, results):

@@ -2,6 +2,7 @@ import pprint
 from pymongo import MongoClient
 import datetime
 from pprint import pprint as prinT
+import datetime
 
 class CacheDb:
     def __init__(self):
@@ -24,7 +25,12 @@ class CacheDb:
         queries = []
         for index, combination in enumerate(combinations):
             for index, city in enumerate(combination[:-1]):
-                query = {'origin': combination[index], 'destination': combination[index+1], 'date': dates[index+1]}
+                date_origin = datetime.datetime.strptime(dates[index+1], '%Y-%m-%d')
+                date_plus_one = date_origin + datetime.timedelta(days=1)
+                query = {'origin': combination[index],
+                         'destination': combination[index+1],
+                         'departure_date': {'$gte': str(date_origin), '$lt': str(date_plus_one)}
+                         }
                 queries.append(query)
         return queries
 
@@ -32,7 +38,7 @@ class CacheDb:
         post = {'origin': flight_object['flight']['trips']['data']['city'][0]['code'],
                 'destination':flight_object['flight']['trips']['data']['city'][-1]['code'],
                 'departure_date': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][0]['departureTime'],
-                'arrival_date': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][-1]['arrivalTime'],
+                'arrival_date': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][-1]['leg'][-1]['arrivalTime'],
                 'flight_id': flight_object_id,
                 'query_date': flight_object['date'],
                 'price': flight_object['flight']['trips']['tripOption'][0]['saleTotal']

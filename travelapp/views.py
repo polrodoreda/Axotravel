@@ -9,6 +9,10 @@ import travelapp.src.distance as d
 from pymongo import MongoClient
 from datetime import datetime
 import GeoIP
+from travelapp.src.QpxApiClass import QpxApi
+from travelapp.src.CacheDbClass import CacheDb
+from pprint import pprint as prinT
+
 
 def home(request):
     ip =  request.META['REMOTE_ADDR']
@@ -42,42 +46,39 @@ def travel_info(request):
         clear_cities = g.correct_cities(cities)
         depart_date = str(request.GET['date'])
 
-    if request.GET['filter'] == 'Price':
-        cdb = CacheDb()
-        qpx = QpxApi()
+        if request.GET['filter'] == 'Price':
+            cdb = CacheDb()
+            qpx = QpxApi()
+            results = []
+            queriesApi = []
 
-        dates = g.get_dates(depart_date, clear_cities)
-        combinations = g.get_combinations(clear_cities)
-        queries = cdb.CreateFlightCollectionQueries(combinations, dates)
-        resultsFlightDb = cdb.QueryFlightCollection(queries)
-        results = []
-        queriesApi = []
+            dates = g.get_dates(depart_date, clear_cities)
+            combinations = g.get_combinations(clear_cities)
+            queries = cdb.CreateFlightCollectionQueries(combinations, dates)
+            prinT(queries)
+            resultsFlightDb = cdb.QueryFlightCollection(queries)
+            prinT(resultsFlightDb)
+            for index,resultFlightDb in enumerate(resultsFlightDb):
+                if resultFlightDb != None:
+                    resultApiDb = cdb.QueryApiCollection({cdb.Flight2ApiObjectId(resultFlightDb)})
+                    if resultApiDb != None:
+                            results.append(resultApiDb)
+                else:
+                    queriesApi.append(qpx.CreateQuery(queries[index]))
+            resultsApi = qpx.Query(queriesApi)
+            for index, resultApi in enumerate(resultsApi):
+                prinT(resultApi)
+                if 'error' not in resultApi:
+                    results.append(resultApi)
+                    cdb.Save(resultApi)
+                else:
+                    print(resultApi['error']['message'])
+            minPrice = qpx.MinPrice(results)
+            #print result
+            #returned_data = api.Query(queryArray)
+            result= "pepe"
+            data = zip(result, dates,[1,2,3,4])
 
-        for index,resultFlightDb in enumerate(resultsFlightDb):
-            if resultFlightDb != None:
-                resultApiDb = cdb.QueryApiCollection({cdb.Flight2ApiObjectId(resultFlightDb)})
-                if resultApiDb != None:
-                        results.append(resultApiDb)
-            else:
-                queriesApi.append(qpx.CreateQueries(queries[index]))
-        resultsApi = qpx.Query(queriesApi)
-        for index, resultApi in enumerate(resultsApi):
-            results.append(resultApi)
-            cdb.Save(resultApi)
-        minPrice = qpx.MinPrice(results)
-        #print result
-        #returned_data = api.Query(queryArray)
-        result= "pepe"
-
-        data = zip(result, dates,[1,2,3,4])
-        #data = zip ("pepe", "1")
-        #print returned_data
-        #pprint.pprint(returned_data)
-        #import os
-        #print os.getcwd()
-        #file_data = qpx.OpenFile("weather/src/solution5")
-        #api.Save(file_data)
-        #api.Save(returned_data)
 
         elif request.GET['filter'] == 'Weather':
             if (datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.now()).days < 7:
