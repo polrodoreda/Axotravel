@@ -5,11 +5,18 @@ from django.shortcuts import render
 import travelapp.src.generic as g
 import travelapp.src.weather as w
 import travelapp.src.distance as d
-
+from pymongo import MongoClient
+from datetime import datetime
+import GeoIP
 
 def home(request):
-    # geoip
-    city = 'Barcelona'
+    ip =  request.META['REMOTE_ADDR']
+    gi = GeoIP.open("/Volumes/Data/Users/polrodoreda/Documents/Master/Q2/CC/AxoTravel/travelapp/geoip/GeoLiteCity.dat", GeoIP.GEOIP_STANDARD)
+    gir = gi.record_by_addr(ip)
+    if gir is not None:
+        city = gir['city']
+    else:
+        city = 'Barcelona'
     owm = w.api_connection()
     obs = owm.weather_at_place(city)
     we = obs.get_weather()
@@ -19,8 +26,12 @@ def home(request):
 
 
 def travel_form(request):
-    # Data mining to search hot destinations
-    destinations = ['Barcelona', 'Dublin', 'Berlin', 'Lisbon']
+    destinations = []
+    client = MongoClient()
+    db = client.travelappnosql
+    pipe = [{'$group': {'_id': "$name", 'qty': {'$sum': "$qty"}}}, {'$sort': {'qty': -1}}, {'$limit': 4}]
+    for x in db.cities.aggregate(pipeline=pipe):
+        destinations.append(x['_id'])
     return render(request, 'travelapp/travel_form.html', {'destinations': destinations})
 
 
@@ -34,18 +45,22 @@ def travel_info(request):
             pass
 
         elif request.GET['filter'] == 'Weather':
-            owm = w.api_connection()
-            dates = g.get_dates(depart_date, clear_cities)
-            combinations = g.get_combinations(clear_cities)
-            result = w.weather_trip(combinations, dates, owm)
-            weather = w.get_weather(result, dates, owm)
-            data = zip(result, dates, weather)
+            if (datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.now()).days < 7:
+                owm = w.api_connection()
+                dates = g.get_dates(depart_date, clear_cities)
+                combinations = g.get_combinations(clear_cities)
+                result = w.weather_trip(combinations, dates, owm)
+                weather = w.get_weather(result, dates, owm)
+                data = zip(result, dates, weather)
+            else:
+                return render(request, 'travelapp/travel_error.html', {})
 
         else:
             dates = g.get_dates(depart_date, clear_cities)
             combinations = g.get_combinations(clear_cities)
             result = d.distance_trip(combinations)
-            data = zip(result, dates)
+            weather = [1, 2, 3, 4]
+            data = zip(result, dates, weather)
 
     else:
         data = 'Error'
