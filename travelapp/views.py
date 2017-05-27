@@ -1,0 +1,102 @@
+
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from django.shortcuts import render
+import travelapp.src.generic as g
+import travelapp.src.weather as w
+import travelapp.src.distance as d
+from pymongo import MongoClient
+from datetime import datetime
+import GeoIP
+
+def home(request):
+    ip =  request.META['REMOTE_ADDR']
+    gi = GeoIP.open("/Volumes/Data/Users/polrodoreda/Documents/Master/Q2/CC/AxoTravel/travelapp/geoip/GeoLiteCity.dat", GeoIP.GEOIP_STANDARD)
+    gir = gi.record_by_addr(ip)
+    if gir is not None:
+        city = gir['city']
+    else:
+        city = 'Barcelona'
+    owm = w.api_connection()
+    obs = owm.weather_at_place(city)
+    we = obs.get_weather()
+    temperature = we.get_temperature(unit='celsius')['temp']
+    status = we.get_status()
+    return render(request, 'travelapp/home.html', {'city': city, 'temperature': temperature, 'status': status})
+
+
+def travel_form(request):
+    destinations = []
+    client = MongoClient()
+    db = client.travelappnosql
+    pipe = [{'$group': {'_id': "$name", 'qty': {'$sum': "$qty"}}}, {'$sort': {'qty': -1}}, {'$limit': 4}]
+    for x in db.cities.aggregate(pipeline=pipe):
+        destinations.append(x['_id'])
+    return render(request, 'travelapp/travel_form.html', {'destinations': destinations})
+
+
+def travel_info(request):
+    if request.GET:
+        cities = [request.GET['origin'], request.GET['city1'], request.GET['city2']]
+        clear_cities = g.correct_cities(cities)
+        depart_date = str(request.GET['date'])
+
+    if request.GET['filter'] == 'Price':
+        cdb = CacheDb()
+        qpx = QpxApi()
+
+        dates = g.get_dates(depart_date, clear_cities)
+        combinations = g.get_combinations(clear_cities)
+        queries = cdb.CreateFlightCollectionQueries(combinations, dates)
+        resultsFlightDb = cdb.QueryFlightCollection(queries)
+        results = []
+        queriesApi = []
+
+        for index,resultFlightDb in enumerate(resultsFlightDb):
+            if resultFlightDb != None:
+                resultApiDb = cdb.QueryApiCollection({cdb.Flight2ApiObjectId(resultFlightDb)})
+                if resultApiDb != None:
+                        results.append(resultApiDb)
+            else:
+                queriesApi.append(qpx.CreateQueries(queries[index]))
+        resultsApi = qpx.Query(queriesApi)
+        for index, resultApi in enumerate(resultsApi):
+            results.append(resultApi)
+            cdb.Save(resultApi)
+        minPrice = qpx.MinPrice(results)
+        #print result
+        #returned_data = api.Query(queryArray)
+        result= "pepe"
+
+        data = zip(result, dates,[1,2,3,4])
+        #data = zip ("pepe", "1")
+        #print returned_data
+        #pprint.pprint(returned_data)
+        #import os
+        #print os.getcwd()
+        #file_data = qpx.OpenFile("weather/src/solution5")
+        #api.Save(file_data)
+        #api.Save(returned_data)
+
+        elif request.GET['filter'] == 'Weather':
+            if (datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.now()).days < 7:
+                owm = w.api_connection()
+                dates = g.get_dates(depart_date, clear_cities)
+                combinations = g.get_combinations(clear_cities)
+                result = w.weather_trip(combinations, dates, owm)
+                weather = w.get_weather(result, dates, owm)
+                data = zip(result, dates, weather)
+            else:
+                return render(request, 'travelapp/travel_error.html', {})
+
+        else:
+            dates = g.get_dates(depart_date, clear_cities)
+            combinations = g.get_combinations(clear_cities)
+            result = d.distance_trip(combinations)
+            weather = [1, 2, 3, 4]
+            data = zip(result, dates, weather)
+
+    else:
+        data = 'Error'
+    return render(request, 'travelapp/travel_info.html', {'data': data})
