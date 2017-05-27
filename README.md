@@ -4,8 +4,19 @@
 
 ## Dependencies
 
-* brew install gdal
-* pip install psycopg2
+**brew**
+
+* gdal
+
+**pip**
+
+* django
+* pyowm
+* psycopg2
+* pymongo
+
+**Others**
+
 * [PostgreSQL](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads#macosx)
 * PostGIS
 * [PgAdmin4](https://www.pgadmin.org/download/pgadmin-4-macos/)
