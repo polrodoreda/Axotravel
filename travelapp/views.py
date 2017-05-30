@@ -21,6 +21,8 @@ def home(request):
     #gir = gi.record_by_addr(ip)
     if ip is not None:
         city = g.city(ip)
+        if city is None:
+            city = 'Barcelona'
     else:
         city = 'Barcelona'
     owm = w.api_connection()
