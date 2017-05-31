@@ -32,14 +32,14 @@ def get_combinations(cities):
     return combinations
 
 def getCityNameFromIATA(iata):
-    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234")
+    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234 host=172.31.32.50")
     cur = conn.cursor()
     cur.execute("SELECT city_name FROM travelapp_airport WHERE airport_iata='"+iata.upper()+"';")
     res = cur.fetchone()[0]
     return res
 
 def getIATAFromCityName(city):
-    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234")
+    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234 host=172.31.32.50")
     cur = conn.cursor()
     cur.execute("SELECT airport_iata FROM travelapp_airport WHERE upper(city_name)='"+city.upper()+"';")
     res = cur.fetchone()[0]

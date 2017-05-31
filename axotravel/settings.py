@@ -68,7 +68,8 @@ DATABASES = {
         'NAME': 'axotravel',
         'USER': 'postgres',
         'PASSWORD': 'Pepe1234',
-	'HOST': 'localhost',
+	'HOST': '172.31.32.50',
+	'SSL': 'off'
     }
 }
 

@@ -4,7 +4,7 @@ import psycopg2
 
 
 def get_dist(city, city2):
-    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234")
+    conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234 host=172.31.32.50")
     cur = conn.cursor()
     cur.execute("SELECT st_distance_sphere(a.city_location, b.city_location) FROM travelapp_airport a, travelapp_airport b WHERE a.city_name=%s AND b.city_name=%s;", (city, city2))
     res = cur.fetchone()[0]
