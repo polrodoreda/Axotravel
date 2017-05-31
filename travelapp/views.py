@@ -58,29 +58,38 @@ def travel_info(request):
             dates = g.get_dates(depart_date, clear_cities)
             combinations = g.get_combinations(clear_cities)
             queries = cdb.CreateFlightCollectionQueries(combinations, dates)
-            prinT(queries)
             resultsFlightDb = cdb.QueryFlightCollection(queries)
-            prinT(resultsFlightDb)
             for index,resultFlightDb in enumerate(resultsFlightDb):
                 if resultFlightDb != None:
-                    resultApiDb = cdb.QueryApiCollection({cdb.Flight2ApiObjectId(resultFlightDb)})
+                    resultApiDb = cdb.QueryApiCollection(cdb.Flight2ApiObjectId(resultFlightDb))
                     if resultApiDb != None:
                             results.append(resultApiDb)
                 else:
                     queriesApi.append(qpx.CreateQuery(queries[index]))
+            prinT(queriesApi)
             resultsApi = qpx.Query(queriesApi)
+            #resultsApi=[]
             for index, resultApi in enumerate(resultsApi):
                 prinT(resultApi)
                 if 'error' not in resultApi:
-                    results.append(resultApi)
+                    results.append({'flight':resultApi})
                     cdb.Save(resultApi)
                 else:
                     print(resultApi['error']['message'])
-            minPrice = qpx.MinPrice(results)
-            #print result
-            #returned_data = api.Query(queryArray)
-            result= "pepe"
-            data = zip(result, dates, ['', 2, 3, 4])
+            #prinT(results)
+            result = qpx.MinPrice(combinations,results)
+            # prices
+            prices = cdb.GetPrices(result, dates)
+
+            #convert iata to city name
+            for index, iata in enumerate(result):
+                result[index] = qpx.getCityNameFromIATA(iata)
+
+            #pack
+            weather = [1, 1, 1, 1]
+            #prices = [1, 1, 1, 1]
+            distances = [1, 1, 1, 1]
+            data = zip(result, dates, weather,prices)
 
 
         elif request.GET['filter'] == 'Weather':

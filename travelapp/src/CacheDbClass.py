@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pprint
 from pymongo import MongoClient
 import datetime
@@ -14,6 +16,7 @@ class CacheDb:
     def QueryFlightCollection(self, queries):
         results = []
         for query in queries:
+            print query
             results.append(self._flight_cache.find_one(query))
         return results
 
@@ -27,16 +30,16 @@ class CacheDb:
             for index, city in enumerate(combination[:-1]):
                 date_origin = datetime.datetime.strptime(dates[index+1], '%Y-%m-%d')
                 date_plus_one = date_origin + datetime.timedelta(days=1)
-                query = {'origin': combination[index],
-                         'destination': combination[index+1],
+                query = {'origin': combination[index].upper(),
+                         'destination': combination[index+1].upper(),
                          'departure_date': {'$gte': str(date_origin), '$lt': str(date_plus_one)}
                          }
                 queries.append(query)
         return queries
 
     def Api2Flight(self, flight_object, flight_object_id):
-        post = {'origin': flight_object['flight']['trips']['data']['city'][0]['code'],
-                'destination':flight_object['flight']['trips']['data']['city'][-1]['code'],
+        post = {'origin': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][0]['origin'],
+                'destination': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][-1]['leg'][-1]['destination'],
                 'departure_date': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][0]['departureTime'],
                 'arrival_date': flight_object['flight']['trips']['tripOption'][0]['slice'][0]['segment'][-1]['leg'][-1]['arrivalTime'],
                 'flight_id': flight_object_id,
@@ -46,7 +49,7 @@ class CacheDb:
         return post
 
     def Flight2ApiObjectId(self,flight_object):
-        return flight_object['flight_id']
+        return {'_id':flight_object['flight_id']}
 
     def Save(self,qpx_json_object):
         if qpx_json_object != None:
@@ -59,3 +62,12 @@ class CacheDb:
             print post_id
             flight_object = self.Api2Flight(post, post_id)
             self._flight_cache.insert_one(flight_object)
+
+    def GetPrices(self, combination, dates):
+        queries = self.CreateFlightCollectionQueries([combination], dates)
+        resultsFlightDb = self.QueryFlightCollection(queries)
+        prices = []
+        prices.append("0")
+        for index, resultFlightDb in enumerate(resultsFlightDb):
+            prices.append(resultFlightDb['price'].replace("EUR",""))
+        return prices
