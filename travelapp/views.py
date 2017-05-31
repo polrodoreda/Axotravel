@@ -31,6 +31,7 @@ def home(request):
 
 def travel_form(request):
     destinations = []
+    destinations2 = []
     client = MongoClient()
     db = client.local
     pipe = [{'$group': {'_id': "$destination", 'destination': {'$sum': 1}}}, {'$sort': {'destination': -1}}, {'$limit': 4}]
@@ -39,7 +40,7 @@ def travel_form(request):
 
     for iata in destinations:
         destinations2.append(g.getCityNameFromIATA(iata))
-    return render(request, 'travelapp/travel_form.html', {'destinations': destinations})
+    return render(request, 'travelapp/travel_form.html', {'destinations2': destinations2})
 
 
 def travel_info(request):
