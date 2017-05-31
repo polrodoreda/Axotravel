@@ -19,7 +19,7 @@ class CacheDb:
     def QueryFlightCollection(self, queries):
         results = []
         for query in queries:
-            print query
+            #print query
             results.append(self._flight_cache.find_one(query))
         return results
 
@@ -61,8 +61,8 @@ class CacheDb:
             "date": datetime.datetime.utcnow()
             }
             post_id = self._api_cache.insert_one(post).inserted_id
-            prinT(post)
-            print post_id
+            #prinT(post)
+            #print post_id
             flight_object = self.Api2Flight(post, post_id)
             self._flight_cache.insert_one(flight_object)
 
@@ -81,7 +81,7 @@ class CacheDb:
         results = []
         queriesApi = []
         for index,combination in enumerate(combinations):
-            for index2,city in enumerate(combination):  
+            for index2,city in enumerate(combination):
                 combinations[index][index2]= g.getIATAFromCityName(city)
         queries = self.CreateFlightCollectionQueries(combinations, dates)
         resultsFlightDb = self.QueryFlightCollection(queries)
@@ -95,7 +95,7 @@ class CacheDb:
         resultsApi = self._qpx.Query(queriesApi)
 
         for index, resultApi in enumerate(resultsApi):
-            prinT(resultApi)
+            #prinT(resultApi)
             if 'error' not in resultApi:
                 results.append({'flight': resultApi})
                 self.Save(resultApi)

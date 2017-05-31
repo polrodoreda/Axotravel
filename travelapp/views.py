@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
@@ -11,7 +10,7 @@ import datetime
 from django.contrib.gis.geoip import GeoIP
 from travelapp.src.CacheDbClass import CacheDb
 from pprint import pprint as prinT
-
+import copy
 
 def home(request):
     ip =  request.META['REMOTE_ADDR']
@@ -37,6 +36,9 @@ def travel_form(request):
     pipe = [{'$group': {'_id': "$destination", 'destination': {'$sum': 1}}}, {'$sort': {'destination': -1}}, {'$limit': 4}]
     for x in db.flight_cache.aggregate(pipeline=pipe):
         destinations.append(x['_id'])
+
+    for iata in destinations:
+        destinations2.append(g.getCityNameFromIATA(iata))
     return render(request, 'travelapp/travel_form.html', {'destinations': destinations})
 
 
@@ -52,15 +54,13 @@ def travel_info(request):
 
         if request.GET['filter'] == 'Price':
             results = cdb.Query(combinations, dates)
-            #prinT(results)
             result = g.MinPrice(combinations, results)
-
             #convert iata to city name
             for index, iata in enumerate(result):
                 result[index] = g.getCityNameFromIATA(iata)
 
         elif request.GET['filter'] == 'Weather':
-            if (datetime.datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.datetime.now()).days < 7:
+            if (datetime.datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.datetime.now()).days < 5:
                 result = w.weather_trip(combinations, dates, owm)
             else:
                 return render(request, 'travelapp/travel_error.html', {})
@@ -68,14 +68,19 @@ def travel_info(request):
         elif request.GET['filter'] == 'Distance':
             result = d.distance_trip(combinations)
 
-        print result, dates
-        print 'x'*100
-        price = cdb.GetPrices(result, dates)
-        weather = w.get_weather(result, dates, owm)
+        # Travel Info
+        price = cdb.GetPrices(copy.deepcopy(result), dates)
+        if (datetime.datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.datetime.now()).days < 5:
+            weather = w.get_weather(result, dates, owm)
+        else:
+            weather = ['Not available', 'Not available', 'Not available', 'Not available']
         distance = [0] + d.get_distances(result)
         data = zip(result, dates, weather, price, distance)
+        total_price = 0
+        for x in price:
+            total_price += float(x)
 
     else:
         data = 'Error'
         return render(request, 'travelapp/info_error.html', {})
-    return render(request, 'travelapp/travel_info.html', {'data': data})
+    return render(request, 'travelapp/travel_info.html', {'data': data, 'total_price': total_price})
