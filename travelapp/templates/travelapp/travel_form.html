@@ -1,4 +1,10 @@
 {% extends 'travelapp/base.html' %}
+{% block navbar %}
+<ul class="nav navbar-nav navbar-right">
+  <li><a href="{% url 'help' %}">Need Help?</a></li>
+</ul>
+{% endblock %}
+
 {% block content %}
   <div class="row">
     <div class="col-md-6">
