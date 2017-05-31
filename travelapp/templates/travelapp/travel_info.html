@@ -8,7 +8,7 @@
 
       <div style="display:inline-block;width:100%;overflow-y:auto;">
         <ul class="timeline timeline-horizontal">
-          {% for result, date, weather, price in data %}
+          {% for result, date, weather, price, distance in data %}
             <li class="timeline-item">
               <div class="timeline-badge primary"><i class="glyphicon glyphicon-map-marker"></i></div>
               <div class="timeline-panel">
@@ -17,11 +17,9 @@
                   <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i> {{ date }}</small></p>
                 </div>
                 <div class="timeline-body">
-                  {% if weather != "" %}
-                    <p>{{ weather }} - {{ price }}</p>
-                  {% else %}
-                    <p>{{ price }}</p>
-                  {% endif %}
+                  <p><span class="glyphicon glyphicon-euro"></span> {{ price }} €</p>
+                  <p><span class="glyphicon glyphicon-road"></span> {{ distance }} km</p>
+                  <p><span class="glyphicon glyphicon-cloud"></span><small> {{ weather }}</small></p>
                 </div>
               </div>
             </li>

@@ -2,14 +2,16 @@
 {% load staticfiles %}
 {% block navbar %}
   <ul class="nav navbar-nav navbar-right">
-      <li><a href="#">{{ city }}, {{ temperature }} ºC, {{ status }}</a></li>
+      <li><a href="#">{{ city }}, {{ status }}, {{ temperature }} ºC</a></li>
   </ul>
 {% endblock %}
 
 {% block content %}
   <div class="jumbotron">
-    <h2>Find your best multi destination travel</h2>
+    <h2><span class="glyphicon glyphicon-globe"></span> Find your best multi destination travel</h2>
     <h3>You choose the cities, we give you the best route</h3>
+    <br />
+    <a href="{% url 'travel_form' %}" class="btn btn-danger" role="button">Let's Flight <span class="glyphicon glyphicon-send"></span></a>
   </div>
 
   <div class="row">

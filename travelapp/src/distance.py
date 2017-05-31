@@ -21,4 +21,14 @@ def distance_trip(combinations):
             dist += get_dist(city, combination[i+1])
         results[index] = dist
 
-    return combinations[min(results)]
+    return combinations[min(results, key = results.get)]
+
+
+def get_distances(combination):
+    distances = []
+
+    for i, city in enumerate(combination[:-1]):
+        dist = get_dist(city, combination[i+1])
+        distances.append(float("{0:.2f}".format(dist)))
+
+    return distances

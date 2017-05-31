@@ -19,8 +19,7 @@ def weather_trip(combinations, dates, owm):
             w = fc.get_weather_at(date)
             weight += weights[str(w.get_status())]
         results[index] = weight
-
-    return combinations[max(results)]
+    return combinations[max(results, key = results.get)]
 
 
 def get_weather(combination, dates, owm):
