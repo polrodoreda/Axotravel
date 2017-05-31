@@ -92,10 +92,11 @@ class CacheDb:
                         results.append(resultApiDb)
             else:
                 queriesApi.append(self._qpx.CreateQuery(queries[index]))
+        prinT(queriesApi)
         resultsApi = self._qpx.Query(queriesApi)
 
         for index, resultApi in enumerate(resultsApi):
-            #prinT(resultApi)
+            prinT(resultApi)
             if 'error' not in resultApi:
                 results.append({'flight': resultApi})
                 self.Save(resultApi)

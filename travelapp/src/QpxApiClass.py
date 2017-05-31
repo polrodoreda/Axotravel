@@ -22,6 +22,7 @@ class QpxApi:
     def CreateQuery(self, flightDbQuery):
         params ={
           "request": {
+            "saleCountry": "ES",
             "slice": [
             ],
             "passengers": {
@@ -40,7 +41,7 @@ class QpxApi:
         query["request"]["slice"].append({
         "origin": flightDbQuery['origin'].upper(),
         "destination": flightDbQuery['destination'].upper(),
-        "date": datetime.strptime(flightDbQuery['departure_date']['$gte'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d')
+        "date": datetime.strptime(flightDbQuery['departure_date']['$gte'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'),
         })
 
         return query
