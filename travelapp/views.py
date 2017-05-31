@@ -9,7 +9,6 @@ import travelapp.src.distance as d
 from pymongo import MongoClient
 import datetime
 from django.contrib.gis.geoip import GeoIP
-from travelapp.src.QpxApiClass import QpxApi
 from travelapp.src.CacheDbClass import CacheDb
 from pprint import pprint as prinT
 
@@ -50,37 +49,15 @@ def travel_info(request):
         combinations = g.get_combinations(clear_cities)
         owm = w.api_connection()
         cdb = CacheDb()
-        qpx = QpxApi()
 
         if request.GET['filter'] == 'Price':
-            results = []
-            queriesApi = []
-
-            queries = cdb.CreateFlightCollectionQueries(combinations, dates)
-            resultsFlightDb = cdb.QueryFlightCollection(queries)
-            for index,resultFlightDb in enumerate(resultsFlightDb):
-                if resultFlightDb != None:
-                    resultApiDb = cdb.QueryApiCollection(cdb.Flight2ApiObjectId(resultFlightDb))
-                    if resultApiDb != None:
-                            results.append(resultApiDb)
-                else:
-                    queriesApi.append(qpx.CreateQuery(queries[index]))
-            prinT(queriesApi)
-            resultsApi = qpx.Query(queriesApi)
-
-            for index, resultApi in enumerate(resultsApi):
-                prinT(resultApi)
-                if 'error' not in resultApi:
-                    results.append({'flight': resultApi})
-                    cdb.Save(resultApi)
-                else:
-                    print(resultApi['error']['message'])
+            results = cdb.Query(combinations, dates)
             #prinT(results)
-            result = qpx.MinPrice(combinations, results)
+            result = g.MinPrice(combinations, results)
 
             #convert iata to city name
             for index, iata in enumerate(result):
-                result[index] = qpx.getCityNameFromIATA(iata)
+                result[index] = g.getCityNameFromIATA(iata)
 
         elif request.GET['filter'] == 'Weather':
             if (datetime.datetime.strptime(request.GET['date'], "%Y-%m-%d") - datetime.datetime.now()).days < 7:

@@ -60,38 +60,3 @@ class QpxApi:
             #######################################################################################
             #results.append(None)
         return results
-
-    def MinPrice(self, combinations, flights):
-        results = {}
-        for index, combination in enumerate(combinations):
-            price = 0
-            for i, city in enumerate(combination[:-1]):
-
-                for flight in flights:
-                    #print (str(flight['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][0]['origin']).upper()+city.upper() + ">" +
-                    #str(flight['flight']['trips']['tripOption'][0]['slice'][0]['segment'][-1]['leg'][-1]['destination']).upper()+combination[i+1].upper())
-                    if (str(flight['flight']['trips']['tripOption'][0]['slice'][0]['segment'][0]['leg'][0]['origin']).upper()==city.upper()
-                    and str(flight['flight']['trips']['tripOption'][0]['slice'][0]['segment'][-1]['leg'][-1]['destination']).upper()==combination[i+1].upper()):
-                        value = float(flight['flight']['trips']['tripOption'][0]['saleTotal'].replace("EUR",""))
-                        #print (city.upper() + ">"+ combination[i+1].upper() +":" +flight['flight']['trips']['tripOption'][0]['saleTotal'])
-                        #value = float(flight['flight']['trips']['tripOption'][0]['saleTotal'].replace("$",""))
-                        price += value
-            results[index] = price
-        #print(combinations)
-        #prinT(results)
-        return combinations[min(results, key=results.get)]
-
-
-    def getCityNameFromIATA(self, iata):
-        conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234")
-        cur = conn.cursor()
-        cur.execute("SELECT city_name FROM travelapp_airport WHERE airport_iata='"+iata.upper()+"';")
-        res = cur.fetchone()[0]
-        return res
-
-    def getIATAFromCityName(self, city):
-        conn = psycopg2.connect("dbname=axotravel user=postgres password=Pepe1234")
-        cur = conn.cursor()
-        cur.execute("SELECT airport_iata FROM travelapp_airport WHERE upper(city_name)='"+city.upper()+"';")
-        res = cur.fetchone()[0]
-        return res

@@ -5,6 +5,8 @@ from pymongo import MongoClient
 import datetime
 from pprint import pprint as prinT
 import datetime
+import travelapp.src.generic as g
+from travelapp.src.QpxApiClass import QpxApi
 
 class CacheDb:
     def __init__(self):
@@ -12,6 +14,7 @@ class CacheDb:
         self._db = self._mongo_client.local
         self._flight_cache = self._db.flight_cache
         self._api_cache = self._db.api_cache
+        self._qpx = QpxApi()
 
     def QueryFlightCollection(self, queries):
         results = []
@@ -64,6 +67,8 @@ class CacheDb:
             self._flight_cache.insert_one(flight_object)
 
     def GetPrices(self, combination, dates):
+        for index,city in enumerate(combination):
+            combination[index]= g.getIATAFromCityName(city)
         queries = self.CreateFlightCollectionQueries([combination], dates)
         resultsFlightDb = self.QueryFlightCollection(queries)
         prices = []
@@ -71,3 +76,29 @@ class CacheDb:
         for index, resultFlightDb in enumerate(resultsFlightDb):
             prices.append(resultFlightDb['price'].replace("EUR",""))
         return prices
+
+    def Query( self, combinations, dates):
+        results = []
+        queriesApi = []
+        for index,combination in enumerate(combinations):
+            for index2,city in enumerate(combination):  
+                combinations[index][index2]= g.getIATAFromCityName(city)
+        queries = self.CreateFlightCollectionQueries(combinations, dates)
+        resultsFlightDb = self.QueryFlightCollection(queries)
+        for index,resultFlightDb in enumerate(resultsFlightDb):
+            if resultFlightDb != None:
+                resultApiDb = self.QueryApiCollection(self.Flight2ApiObjectId(resultFlightDb))
+                if resultApiDb != None:
+                        results.append(resultApiDb)
+            else:
+                queriesApi.append(self._qpx.CreateQuery(queries[index]))
+        resultsApi = self._qpx.Query(queriesApi)
+
+        for index, resultApi in enumerate(resultsApi):
+            prinT(resultApi)
+            if 'error' not in resultApi:
+                results.append({'flight': resultApi})
+                self.Save(resultApi)
+            else:
+                print(resultApi['error']['message'])
+        return results
