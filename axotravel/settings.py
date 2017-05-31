@@ -13,7 +13,7 @@ SECRET_KEY = 'alvpfd60a!%i0g5!v*)5eaj@rt8^+)%7f476+lq9--mthji5v9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['52.15.234.43']
 
 
 # Application definition
@@ -68,6 +68,7 @@ DATABASES = {
         'NAME': 'axotravel',
         'USER': 'postgres',
         'PASSWORD': 'Pepe1234',
+	'HOST': 'localhost',
     }
 }
 

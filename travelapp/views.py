@@ -15,8 +15,9 @@ import copy
 def home(request):
     ip =  request.META['REMOTE_ADDR']
     g = GeoIP()
+    print ip
     if ip is not None:
-        city = g.city(ip)
+        city = g.city(ip)['city']
         if city is None:
             city = 'Barcelona'
     else:
